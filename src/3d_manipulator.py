@@ -7,9 +7,11 @@ import matplotlib.animation as animation
 import pickle
 
 l1 = 2
-
+target_flag=0
 # dh matrix in the form theta, alpha, a, and d
-dh = [
+dh = [[0,radians(90),0,0.3],
+      [0, 0, l1, 0],
+
       [0, 0, l1, 0],
       [0, 0, l1, 0]]
 
@@ -72,10 +74,11 @@ class Robot:
         return angle
 
     def ccd(self,target,i):
-        #print(i)
+        global target_flag
         dist = lambda a,b: sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2)
         error = dist([self.X[-1],self.Y[-1],self.Z[-1]],target)
-        if error>1e-3:
+        if error>5e-3:
+            target_flag=0
             print(error)
             a = np.array(target)
             c = np.array([self.X[-1],self.Y[-1],self.Z[-1]])
@@ -85,12 +88,14 @@ class Robot:
                 self.dh[i][0] = (self.dh[i][0]+an)
                 self.forward()
         else:
-            print("target reached")
+            if not target_flag:
+                print("target reached")
+                target_flag = 1
 
 rob = Robot(dh)
 
 fig = plt.figure()
-ax1 = plt.subplot(1,1,1)
+ax1 = plt.axes(projection="3d")
 
 theta =0
 j = len(dh)-1
@@ -105,16 +110,16 @@ def animate(i):
             j = len(dh)-1
 
     ax1.clear()
-    plt.xlim(-10,10)
-    plt.ylim(-10,10)
+    plt.xlim(-5,5)
+    plt.ylim(-5,5)
     plt.grid()
-    #ax1.set_zlim(0,5)
+    ax1.set_zlim(0,5)
     ax1.set_xlabel("X axis")
     ax1.set_ylabel("Y axis")
     #ax1.set_zlabel("Z axis")
-    ax1.plot(rob.X,rob.Y)
-    ax1.scatter(rob.X,rob.Y)
-    ax1.scatter(target[0],target[1])
+    ax1.plot(rob.X,rob.Y,rob.Z)
+    ax1.scatter(rob.X,rob.Y,rob.Z)
+    ax1.scatter(target[0],target[1],target[2])
 #    plt.ylim(-5,5)
 ani = animation.FuncAnimation(fig, animate, interval=10)
 plt.show()
